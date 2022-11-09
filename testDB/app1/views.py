@@ -5,14 +5,13 @@ from rest_framework.views import APIView
 from django.db import connections
 from .helpers import dictfetchall
 import requests
-from elasticsearch import Elasticsearch
 # Create your views here.
 
 
 class ReportViewSet(viewsets.ViewSet):
     def list(self, request):
         cursor = connections['default'].cursor()
-        cursor.execute("select * from IMPORT_2021")
+        cursor.execute("select * from report")
         # report = dictfetchall(cursor=cursor)
         # cursor = cursor.execute("select count(*) from IMPORT_2021")
         # 'report': report
@@ -23,6 +22,6 @@ class ReportViewSet(viewsets.ViewSet):
 class TestEsViewSet(viewsets.ViewSet):
     def list(self, request):
         data = requests.get('http://172.16.0.128:9200/addresses/_search')
-        elastic_client = Elasticsearch(hosts=["http://172.16.0.128:9200"])
-        result = elastic_client.search(index="addresses")
-        return Response(data=result, status=status.HTTP_200_OK)
+        # elastic_client = Elasticsearch(hosts=["http://172.16.0.128:9200"])
+        # result = elastic_client.search(index="addresses")
+        return Response(data=data.json(), status=status.HTTP_200_OK)

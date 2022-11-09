@@ -8,12 +8,11 @@
 from django.db import models
 
 
-class Report(models.Model):
+class ReportDetail(models.Model):
     title = models.CharField(max_length=100, db_collation='utf8_general_ci', blank=True, null=True)
-    descriptions = models.TextField(blank=True, null=True)
     price = models.FloatField(blank=True, null=True)
     quantity = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'report'
+        db_table = 'report_detail'
