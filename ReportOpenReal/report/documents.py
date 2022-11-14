@@ -8,7 +8,7 @@ from report.models import RealEstate2022, RealEstate2021
 class RealEstate2022Document(Document):
     class Index:
         name = 'real-estate-2022'
-        settings = {'number_of_shards': 1,
+        settings = {'number_of_shards': 12,
                     'number_of_replicas': 1}
 
     class Django:
@@ -23,7 +23,7 @@ class RealEstate2022Document(Document):
 class RealEstate2021Document(Document):
     class Index:
         name = 'real-estate-2021'
-        settings = {'number_of_shards': 1,
+        settings = {'number_of_shards': 12,
                     'number_of_replicas': 1}
 
     class Django:
