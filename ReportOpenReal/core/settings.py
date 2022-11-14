@@ -38,12 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    ##app config
     'report.apps.ReportConfig',
+    'property.apps.PropertyConfig',
     # Django Elasticsearch integration
     'django_elasticsearch_dsl',
 
     # Django REST framework Elasticsearch integration (this package)
     'django_elasticsearch_dsl_drf',
+    
 ]
 
 MIDDLEWARE = [
@@ -82,36 +85,40 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb',
-        'USER': 'root',
-        'PASSWORD': '230801',
-        'HOST': '127.0.0.1',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'openreal_report',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '172.16.1.27',
         # 'SERVER':'172.16.0.190:9306',  
-        'PORT':'3306'  
+        'PORT':'5432'  
         # mặc định localhost
     },
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'testdb',
+    #     'USER': 'root',
+    #     'PASSWORD': '230801',
+    #     'HOST': '127.0.0.1',
+    #     # 'SERVER':'172.16.0.190:9306',  
+    #     'PORT':'3306'  
+    #     # mặc định localhost
+    # },
     'report':{
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'reportdb',
-        'USER': 'root',
-        'PASSWORD': '230801',
-        'HOST': '127.0.0.1',
+        'NAME': 'REAL_ESTATE_VN',
+        'USER': 'OpenReal',
+        'PASSWORD': 'MDiiEy@6Kj6',
+        'HOST': '172.16.0.190',
         # 'SERVER':'172.16.0.190:9306',  
-        'PORT':'3306'
+        'PORT':'9306'
     }
 }
-# 'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'REAL_ESTATE_VN',
-#         'USER': 'OpenReal',
-#         'PASSWORD': 'MDiiEy@6Kj6',
-#         'HOST': '172.16.0.190',
-#         # 'SERVER':'172.16.0.190:9306',  
-#         'PORT':'9306'  
-#         # mặc định localhost
+# set up router for multiple database
 DATABASE_ROUTERS = (
     'core.whatever_database_router.WhateverDatabaseRouter',
 )
+# set up host for Elasticsearch
 ELASTICSEARCH_DSL = {
     'default': {
         'hosts': 'localhost:9200'
