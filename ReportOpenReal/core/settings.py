@@ -121,7 +121,8 @@ DATABASE_ROUTERS = (
 # set up host for Elasticsearch
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': '172.16.1.27:9200'
+        'hosts': '172.16.1.27:9200',
+        'timeout': 60
     },
 }
 REST_FRAMEWORK = {
