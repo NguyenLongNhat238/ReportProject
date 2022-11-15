@@ -6,9 +6,11 @@ from report.models import RealEstate2022, RealEstate2021
 
 @registry.register_document
 class RealEstate2022Document(Document):
+    def get_queryset(self):
+        return self.django.model._default_manager.all()[0:1000000]
     class Index:
         name = 'real-estate-2022'
-        settings = {'number_of_shards': 20,
+        settings = {'number_of_shards': 12,
                     'number_of_replicas': 1}
 
     class Django:
@@ -21,9 +23,11 @@ class RealEstate2022Document(Document):
 
 @registry.register_document
 class RealEstate2021Document(Document):
+    def get_queryset(self):
+        return self.django.model._default_manager.all()[0:1000000]
     class Index:
         name = 'real-estate-2021'
-        settings = {'number_of_shards': 20,
+        settings = {'number_of_shards': 12,
                     'number_of_replicas': 1}
 
     class Django:
