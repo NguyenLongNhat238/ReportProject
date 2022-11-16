@@ -25,7 +25,8 @@ class RealEstate2022Document(Document):
 @registry.register_document
 class RealEstate2021Document(Document):
     def get_queryset(self):
-        return self.django.model._default_manager.all()[0:1000]
+        count = RealEstate2021Document.search().count()
+        return self.django.model._default_manager.all()[count:count+1000]
     class Index:
         name = 'real-estate-2021'
         settings = {'number_of_shards': 12,
