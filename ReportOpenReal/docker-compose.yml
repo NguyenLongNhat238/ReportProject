@@ -11,4 +11,7 @@ services:
       - .:/report_openreal
     ports:
       - "8000:8000"
-    mem_limit: "5120M"
+    deploy:
+      resources:
+        limits:
+          memory: 5120M
