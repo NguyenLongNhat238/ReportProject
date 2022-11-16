@@ -11,7 +11,6 @@ services:
       - .:/report_openreal
     ports:
       - "8000:8000"
-    memswap_limit: "3g"
     deploy:
       resources:
         limits:
