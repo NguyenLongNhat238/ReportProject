@@ -8,7 +8,7 @@ from report.models import RealEstate2022, RealEstate2021
 class RealEstate2022Document(Document):
     def get_queryset(self):
         count = RealEstate2021Document.search().count()
-        return self.django.model._default_manager.all()[count:count+1000000]
+        return self.django.model._default_manager.all()[count:count+50000]
 
     class Index:
         name = 'real-estate-2022'
@@ -28,7 +28,7 @@ class RealEstate2022Document(Document):
 class RealEstate2021Document(Document):
     def get_queryset(self):
         count = RealEstate2021Document.search().count()
-        return self.django.model._default_manager.all()[count:count+1000000]
+        return self.django.model._default_manager.all()[count:count+50000]
 
     class Index:
         name = 'real-estate-2021'
@@ -42,3 +42,5 @@ class RealEstate2021Document(Document):
                   'full_address', 'format_street', 'split_ward', 'split_district', 'split_city',
                   'dealer_email', 'dealer_tel', 'dealer_name'
                   ]
+    def __str__(self):
+        return self.id

@@ -84,26 +84,26 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'openreal_report',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '172.16.1.27',
-        # 'SERVER':'172.16.0.190:9306',  
-        'PORT':'5432'  
-        # mặc định localhost
-    },
     # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'testdb',
-    #     'USER': 'root',
-    #     'PASSWORD': '230801',
-    #     'HOST': '127.0.0.1',
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'openreal_report',
+    #     'USER': 'postgres',
+    #     'PASSWORD': 'postgres',
+    #     'HOST': '172.16.1.27',
     #     # 'SERVER':'172.16.0.190:9306',  
-    #     'PORT':'3306'  
+    #     'PORT':'5432'  
     #     # mặc định localhost
     # },
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'testdb',
+        'USER': 'root',
+        'PASSWORD': '230801',
+        'HOST': '127.0.0.1',
+        # 'SERVER':'172.16.0.190:9306',  
+        'PORT':'3306'  
+        # mặc định localhost
+    },
     'report':{
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'REAL_ESTATE_VN',
@@ -121,7 +121,7 @@ DATABASE_ROUTERS = (
 # set up host for Elasticsearch
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': '172.16.1.27:9200',
+        'hosts': 'localhost:9200',
         'timeout': 60
     },
 }
