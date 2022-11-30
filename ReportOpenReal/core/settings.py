@@ -88,15 +88,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb',
-        'USER': 'root',
-        'PASSWORD': '230801',
-        'HOST': '127.0.0.1',
-        # 'SERVER':'172.16.0.190:9306',  
-        'PORT':'3306'  
-        # mặc định localhost
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'openreal_report',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '172.16.1.27',
+        'PORT': 5432,
     },
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'testdb',
+    #     'USER': 'root',
+    #     'PASSWORD': '230801',
+    #     'HOST': '127.0.0.1',
+    #     # 'SERVER':'172.16.0.190:9306',  
+    #     'PORT':'3306'  
+    #     # mặc định localhost
+    # },
     'report':{
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'REAL_ESTATE_VN',

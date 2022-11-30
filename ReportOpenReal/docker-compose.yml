@@ -11,11 +11,11 @@ services:
       - .:/report_openreal
     ports:
       - "8000:8000"
-  message_queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: python consumer.py
+  # message_queue:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   command: python consumer.py
     # deploy:
     #   resources:
     #     limits:
