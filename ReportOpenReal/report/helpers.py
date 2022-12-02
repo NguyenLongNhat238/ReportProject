@@ -1,7 +1,11 @@
 
+from datetime import datetime
+import numbers
 import requests
-from constant.config import SEARCH_CITY_DISTRICT, UNIT_PRICE
+from constant.config import SEARCH_CITY_DISTRICT, UNIT_PRICE, YEAR_OF_REQUEST
+from constant.res_handing import ErrorHandling
 from rest_framework import exceptions
+
 
 def dictfetchall(cursor):
     "Return all rows from a cursor as a dict"
@@ -11,11 +15,12 @@ def dictfetchall(cursor):
         for row in cursor.fetchall()
     ]
 
-#### convert currency: triệu đồng -> tỷ đồng
+# convert currency: triệu đồng -> tỷ đồng
 #  UNIT_PRICE 1000
-def currency_converter_helper(money):
-    return round(money/UNIT_PRICE,2)
 
+
+def currency_converter_helper(money):
+    return round(money/UNIT_PRICE, 2)
 
 
 def get_list_district_of_city(city) -> dict:
@@ -26,3 +31,60 @@ def get_list_district_of_city(city) -> dict:
     return data['results']
 
 
+def is_integer_num(n):
+    if isinstance(5, numbers.Number):
+        return True
+    raise exceptions.ValidationError(ErrorHandling(message="Không phải số nguyên / field must be an integer",
+                                                   code="DATA ERROR",
+                                                   type="DATA ERROR",
+                                                   lang='en').to_representation())
+
+
+def get_year_params(year, quarter):
+    year = YEAR_OF_REQUEST
+    st1_quarter = datetime.strptime(
+        f'{year}-1-1', '%Y-%m-%d').date()
+    st2_quarter = datetime.strptime(
+        f'{year}-4-1', '%Y-%m-%d').date()
+    st3_quarter = datetime.strptime(
+        f'{year}-7-1', '%Y-%m-%d').date()
+    st4_quarter = datetime.strptime(
+        f'{year}-10-1', '%Y-%m-%d').date()
+    end_quarter = datetime.strptime(
+        f'{year}-1-1', '%Y-%m-%d').date()
+    from_quarter = st1_quarter
+    to_quarter = st2_quarter
+    if quarter == '1':
+        from_quarter = st1_quarter
+        to_quarter = st2_quarter
+    elif quarter == '2':
+        from_quarter = st2_quarter
+        to_quarter = st3_quarter
+    elif quarter == '3':
+        from_quarter = st3_quarter
+        to_quarter = st4_quarter
+    elif quarter == '4':
+        from_quarter = st4_quarter
+        to_quarter = end_quarter
+    return from_quarter, to_quarter
+
+
+def get_month_params_for_query(from_month, to_month):
+    
+    if from_month is None:
+        raise exceptions.ValidationError(ErrorHandling(message="from_month must be exist",
+                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+    is_integer_num(from_month)
+
+    from_month = int(from_month)
+    if from_month <= 12 and from_month >=1:
+        if to_month:
+            is_integer_num(to_month)
+            to_month = int(to_month)
+            if to_month > from_month and to_month <= 12 and to_month >=1:
+                return from_month, to_month
+            raise exceptions.ValidationError(ErrorHandling(message="to_month must be more than from_month",
+                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+        return from_month, from_month + 2
+    raise exceptions.ValidationError(ErrorHandling(message="month must be integer 1 - 12",
+                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())

@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 from rest_framework.decorators import action
 
-from report.helpers import currency_converter_helper, get_list_district_of_city
+from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
 from .serializers import RealEstate2021Serializer
@@ -39,45 +39,24 @@ class ReportDealer(viewsets.ViewSet,):
         district = data.get('district')
         if city:
             query = query.filter(split_city=city)
-        if self.action in ['price_median']:
-            return query
-        if district:
-            query = query.filter(split_district=city)
-        if self.action in ['price_volatility', 'activity_dealer']:
-            print("query price_volatility")
-            print(city)
+        if self.action not in ['price_median']:
+            if district:
+                query = query.filter(split_district=city)
+        if self.action in [ 'activity_dealer']:
             return query
         
-        year = data.get('year')
-        time = data.get('time')
-        st1_quarter = datetime.strptime(
-            f'{YEAR_OF_REQUEST}-1-1', '%Y-%m-%d').date()
-        st2_quarter = datetime.strptime(
-            f'{YEAR_OF_REQUEST}-4-1', '%Y-%m-%d').date()
-        st3_quarter = datetime.strptime(
-            f'{YEAR_OF_REQUEST}-7-1', '%Y-%m-%d').date()
-        st4_quarter = datetime.strptime(
-            f'{YEAR_OF_REQUEST}-10-1', '%Y-%m-%d').date()
-        end_quarter = datetime.strptime(
-            f'{YEAR_OF_REQUEST}-1-1', '%Y-%m-%d').date()
-        if time:
-            print(time)
-            if time == '1':
-                query = query.filter(ads_date__gte=st1_quarter).filter(
-                    ads_date__lt=st2_quarter)
-            if time == '2':
-                query = query.filter(ads_date__gte=st2_quarter).filter(
-                    ads_date__lt=st3_quarter)
-            if time == '3':
-                query = query.filter(ads_date__gte=st3_quarter).filter(
-                    ads_date__lt=st4_quarter)
-            if time == '4':
-                query = query.filter(ads_date__gte=st4_quarter).filter(
-                    ads_date__lt=end_quarter)
+        # year = data.get('year')
+        # time = data.get('time')
+        # from_quarter, to_quarter = get_year_params(year=year, quarter=time)
+        # if time:
+        #     query = query.filter(ads_date__gte=from_quarter).filter(
+        #         ads_date__lt=to_quarter)
 
-            # if time == '4':
-            #     query = query.filter('range', ads_date={
-            #                          'gte': st4_quarter, 'lt': end_quarter})
+        from_month, to_month = get_month_params_for_query(data.get('from_month'),data.get('to_month'))
+        print(from_month, to_month)
+        if from_month:
+            query = query.filter(ads_date__month__gte=from_month).filter(ads_date__month__lte=to_month)
+        
 
         return query
 
@@ -120,7 +99,7 @@ class ReportDealer(viewsets.ViewSet,):
         return Response(data={
             'total_ads': total_ads,
             'total_dealer': total_dealer,
-            'activities': activities
+            'total_ads_per_month': activities
         }, status=status.HTTP_200_OK)
 
     # Report Api Biến động giá theo từng tháng của một năm
