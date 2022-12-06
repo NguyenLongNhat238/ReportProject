@@ -70,21 +70,44 @@ def get_year_params(year, quarter):
 
 
 def get_month_params_for_query(from_month, to_month):
-    
+
     if from_month is None:
         raise exceptions.ValidationError(ErrorHandling(message="from_month must be exist",
-                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+                                                       code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
     is_integer_num(from_month)
 
     from_month = int(from_month)
-    if from_month <= 12 and from_month >=1:
+    if from_month <= 12 and from_month >= 1:
         if to_month:
             is_integer_num(to_month)
             to_month = int(to_month)
-            if to_month > from_month and to_month <= 12 and to_month >=1:
+            if to_month > from_month and to_month <= 12 and to_month >= 1:
                 return from_month, to_month
             raise exceptions.ValidationError(ErrorHandling(message="to_month must be more than from_month",
-                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+                                                           code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
         return from_month, from_month + 2
     raise exceptions.ValidationError(ErrorHandling(message="month must be integer 1 - 12",
-                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+                                                   code="DATA ERROR", type="DATA ERROR", lang='en').to_representation())
+
+
+def is_integer(n):
+    try:
+        float(n)
+    except:
+        return False
+    else:
+        return float(n).is_integer()
+
+
+def get_year_query_drf(year):
+    if year is None:
+        return 2022
+    if is_integer(year) is True:
+        year = int(year)
+        if year == 2021:
+            return year
+        if year == 2022:
+            return year
+        else:
+            return 2022
+    return 2022

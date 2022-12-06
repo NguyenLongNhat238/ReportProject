@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 from rest_framework.decorators import action
 
-from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params
+from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params, get_year_query_drf
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
 from .serializers import RealEstate2021Serializer
@@ -31,42 +31,63 @@ class TestEsViewSet(viewsets.ViewSet):
 
 class ReportDealer(viewsets.ViewSet,):
 
-    def get_queryset(self):
-        query = RealEstate2022.objects.all()
+    def get_params(self):
         data = self.request.query_params
+        city = data.get('city')
+        district = data.get('district')
+
+        params = {}
+        if city:
+            params.update({'city': city})
+        if district:
+            params.update({'district': district})
+        if self.action in ['activity_dealer']:
+            return params
+        from_month, to_month = get_month_params_for_query(
+            data.get('from_month'), data.get('to_month'))
+        if from_month:
+            params.update({'from_month': from_month,
+                           'to_month': to_month})
+        return params
+
+    def get_queryset(self):
+        data = self.request.query_params
+        year = get_year_query_drf(data.get('year'))
+        if year == 2022:
+
+            query = query_total = RealEstate2022.objects.all()
+        # elif year == 2021:
+        #     query_total = RealEstate2021.objects.all()
+        #     query = RealEstate2021.objects.all()
+        else:
+            query = query_total = RealEstate2022.objects.all()
 
         city = data.get('city')
         district = data.get('district')
         if city:
             query = query.filter(split_city=city)
-        if self.action not in ['price_median']:
+        if self.action not in ['price_per_district']:
             if district:
-                query = query.filter(split_district=city)
-        if self.action in [ 'activity_dealer']:
-            return query
-        
-        # year = data.get('year')
-        # time = data.get('time')
-        # from_quarter, to_quarter = get_year_params(year=year, quarter=time)
-        # if time:
-        #     query = query.filter(ads_date__gte=from_quarter).filter(
-        #         ads_date__lt=to_quarter)
+                query = query.filter(split_district=district)
+        if self.action in ['activity_dealer']:
+            return query, query_total
 
-        from_month, to_month = get_month_params_for_query(data.get('from_month'),data.get('to_month'))
+        from_month, to_month = get_month_params_for_query(
+            data.get('from_month'), data.get('to_month'))
         print(from_month, to_month)
         if from_month:
-            query = query.filter(ads_date__month__gte=from_month).filter(ads_date__month__lte=to_month)
-        
+            query = query.filter(ads_date__month__gte=from_month).filter(
+                ads_date__month__lte=to_month)
 
-        return query
+        return query, query_total
 
     # report Dealer: Số lượng dealer đang hoạt động
     #   - Total_dealer: Tổng số lượng dealer
     #   - num_dealer: số lượng dealer đã đăng bài trong vòng từng quý, từng khu vực
     @action(methods=['get'], url_path="dealer", detail=False)
     def report_dealer(self, request):
-        model = self.get_queryset()
-        total_dealer = RealEstate2022.objects.filter(dealer_name__isnull=False)\
+        model, query_total = self.get_queryset()
+        total_dealer = query_total.filter(dealer_name__isnull=False)\
             .exclude(dealer_name='').values_list('dealer_tel', flat=True).distinct().count()
         number_dealer = model.filter(dealer_name__isnull=False)\
             .exclude(dealer_name='').values_list('dealer_tel', flat=True).distinct().count()
@@ -76,17 +97,19 @@ class ReportDealer(viewsets.ViewSet,):
         # num_dealer = RealEstate2021Document.search().update_from_dict({'collapse':{'field':'city'}})
         return Response(data={
             'total_dealer': total_dealer,
-            'number_dealer': number_dealer
+            'number_dealer': number_dealer,
+            'params': self.get_params(),
         }, status=status.HTTP_200_OK)
 
     # Report Hoạt động, số lượng dealer
     #   - số lượng dealer hoạt động trong 12 tháng
     @action(methods=['get'], url_path="activity-dealer", detail=False)
     def activity_dealer(self, request):
-        total_ads = RealEstate2022.objects.count()
-        total_dealer = RealEstate2022.objects.filter(
+        # Get query set
+        model, query_total = self.get_queryset()
+        total_ads = query_total.count()
+        total_dealer = query_total.filter(
             dealer_name__isnull=False).values_list('dealer_tel', flat=True).distinct().count()
-        model = self.get_queryset()
         model = model.filter(dealer_name__isnull=False)\
             .exclude(Q(dealer_name='')).values_list('dealer_tel', flat=True).order_by('dealer_tel').distinct()
         # model = RealEstate2022.objects.filter(id__range=(0, MAX_QUERY_REPORT)).filter(dealer_tel__isnull=False)\
@@ -99,14 +122,15 @@ class ReportDealer(viewsets.ViewSet,):
         return Response(data={
             'total_ads': total_ads,
             'total_dealer': total_dealer,
-            'total_ads_per_month': activities
+            'total_ads_per_month': activities,
+            'params': self.get_params(),
         }, status=status.HTTP_200_OK)
 
     # Report Api Biến động giá theo từng tháng của một năm
 
     @action(methods=['get'], url_path="price-volatility", detail=False)
     def price_volatility(self, request):
-        model = self.get_queryset()
+        model, query_total = self.get_queryset()
         # model = RealEstate2022.objects.exclude(price=0)\
         #     .exclude(price__isnull=True).exclude(price__lte=0.01)
         model = model.exclude(price=0)\
@@ -120,18 +144,20 @@ class ReportDealer(viewsets.ViewSet,):
         math_price = model.aggregate(Sum('price'), Avg('price'), Max(
             'price'), Min('price'), num_price=Count('price'))
 
-        ##### Math price and percent price avg volatility
+        # Math price and percent price avg volatility
         percent_price_vol = {}
         price_vol = {}
         for i in range(1, 13):
             ##### Filter ads each month  #########
             price = model.filter(ads_date__month=i).aggregate(Avg('price'))
             #### average price each month ########
-            price_vol.update({f'T{i}': currency_converter_helper(price['price__avg'])})
+            if price['price__avg']:
+                price_vol.update(
+                    {f'T{i}': currency_converter_helper(price['price__avg'])})
 
-            # average price per month for annual average
-            percent_price_vol.update(
-                {f'T{i}': round((price['price__avg']/math_price['price__avg'])*100, 2)})
+                # average price per month for annual average
+                percent_price_vol.update(
+                    {f'T{i}': round((price['price__avg']/math_price['price__avg'])*100, 2)})
 
         # return response data :
         #   - count price: count all ads of year
@@ -149,17 +175,18 @@ class ReportDealer(viewsets.ViewSet,):
             'max_price': currency_converter_helper(math_price['price__max']),
             'min_price': currency_converter_helper(math_price['price__min']),
             'price_volatility': price_vol,
-            'percent_price_volatility': percent_price_vol
+            'percent_price_volatility': percent_price_vol,
+            'params': self.get_params(),
         }, status=status.HTTP_200_OK)
 
     # Report Giá trị trung vị bất động sản
     #   - Lọc theo thành phố, loại bất động sản, theo từng quý
     #   - TÍnh trung vị (Median bằng thư viện statistics) tài sản theo từng quận
 
-    @action(methods=['get'], url_path="price-median", detail=False)
-    def price_median(self, request):
+    @action(methods=['get'], url_path="price-per-district", detail=False)
+    def price_per_district(self, request):
         city = self.request.query_params.get('city')
-        model = self.get_queryset()
+        model, query_total = self.get_queryset()
         #### Get list District of city by funtion get_list_district_of_city in helpers.py######
         data = get_list_district_of_city(city)
 
@@ -180,8 +207,9 @@ class ReportDealer(viewsets.ViewSet,):
         #   - currency unit
         #   - top median
         return Response(data={
-            'median_district': district,
+            'price_per_district': district,
             'currency_unit': CURRENT_UNIT,
+            'params': self.get_params(),
         }, status=status.HTTP_200_OK)
 
     # report:
