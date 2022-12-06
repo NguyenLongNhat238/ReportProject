@@ -23,7 +23,7 @@ import statistics
 
 class TestEsViewSet(viewsets.ViewSet):
     def list(self, request):
-        data = requests.get('http://localhost:9200/addresses/_search')
+        data = requests.get('http://172.16.1.27:9200/addresses/_search')
         # elastic_client = Elasticsearch(hosts=["http://172.16.0.128:9200"])
         # result = elastic_client.search(index="addresses")
         return Response(data=data.json(), status=status.HTTP_200_OK)
