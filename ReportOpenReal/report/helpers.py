@@ -77,6 +77,10 @@ def get_month_params_for_query(from_month, to_month):
     is_integer_num(from_month)
 
     from_month = int(from_month)
+    if from_month == 12:
+        return from_month, from_month
+    if from_month == 11:
+        return from_month, 12
     if from_month <= 12 and from_month >= 1:
         if to_month:
             is_integer_num(to_month)
@@ -111,3 +115,10 @@ def get_year_query_drf(year):
         else:
             return 2022
     return 2022
+
+
+def valid_year_uda(year):
+  if year and is_integer(year) is True:
+    year = int(year)
+    if year >=1900 and year <=2022:
+      return year

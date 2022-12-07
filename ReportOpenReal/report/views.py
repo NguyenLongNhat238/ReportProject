@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 from rest_framework.decorators import action
 
-from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params, get_year_query_drf
+from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
 from .serializers import RealEstate2021Serializer
@@ -35,24 +35,37 @@ class ReportDealer(viewsets.ViewSet,):
         data = self.request.query_params
         city = data.get('city')
         district = data.get('district')
+        ads_year = valid_year_uda(data.get('ads_year'))
+        year = data.get('year')
 
         params = {}
         if city:
             params.update({'city': city})
         if district:
             params.update({'district': district})
-        if self.action in ['activity_dealer']:
-            return params
-        from_month, to_month = get_month_params_for_query(
-            data.get('from_month'), data.get('to_month'))
+        # if self.action in ['activity_dealer']:
+        #     return params
+        # from_month, to_month = get_month_params_for_query(
+        #     data.get('from_month'), data.get('to_month'))
+        from_month = data.get('from_month')
+        to_month = data.get('to_month')
         if from_month:
+            from_month, to_month = get_month_params_for_query(
+                data.get('from_month'), data.get('to_month'))
             params.update({'from_month': from_month,
                            'to_month': to_month})
+        if ads_year:
+            params.update({'ads_year': ads_year})
+        if year:
+            params.update({'year': year})
         return params
 
     def get_queryset(self):
         data = self.request.query_params
         year = get_year_query_drf(data.get('year'))
+        ads_year = valid_year_uda(data.get('ads_year'))
+        city = data.get('city')
+        district = data.get('district')
         if year == 2022:
 
             query = query_total = RealEstate2022.objects.all()
@@ -62,22 +75,22 @@ class ReportDealer(viewsets.ViewSet,):
         else:
             query = query_total = RealEstate2022.objects.all()
 
-        city = data.get('city')
-        district = data.get('district')
+        if ads_year:
+            query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
         if self.action not in ['price_per_district']:
             if district:
                 query = query.filter(split_district=district)
-        if self.action in ['activity_dealer']:
-            return query, query_total
-
-        from_month, to_month = get_month_params_for_query(
-            data.get('from_month'), data.get('to_month'))
-        print(from_month, to_month)
-        if from_month:
-            query = query.filter(ads_date__month__gte=from_month).filter(
-                ads_date__month__lte=to_month)
+        # if self.action in ['activity_dealer']:
+        #     return query, query_total
+        if data.get('from_month'):
+            from_month, to_month = get_month_params_for_query(
+                data.get('from_month'), data.get('to_month'))
+            print(from_month, to_month)
+            if from_month:
+                query = query.filter(ads_date__month__gte=from_month).filter(
+                    ads_date__month__lte=to_month)
 
         return query, query_total
 
@@ -87,8 +100,10 @@ class ReportDealer(viewsets.ViewSet,):
     @action(methods=['get'], url_path="dealer", detail=False)
     def report_dealer(self, request):
         model, query_total = self.get_queryset()
+
         total_dealer = query_total.filter(dealer_name__isnull=False)\
             .exclude(dealer_name='').values_list('dealer_tel', flat=True).distinct().count()
+
         number_dealer = model.filter(dealer_name__isnull=False)\
             .exclude(dealer_name='').values_list('dealer_tel', flat=True).distinct().count()
         # num_dealer = RealEstate2021Document.search().query(
@@ -117,7 +132,8 @@ class ReportDealer(viewsets.ViewSet,):
         activities = {}
         for i in range(1, 13):
             count = model.filter(ads_date__month=i).count()
-            activities.update({f'T{i}': count})
+            if count:
+                activities.update({f'T{i}': count})
 
         return Response(data={
             'total_ads': total_ads,
