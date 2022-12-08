@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-s2z5)cqm+wleg@=geb^98io+5q+s^_t-@y79fp**2y!mkry9xp
 DEBUG = True
 STATIC_ROOT = os.path.join(BASE_DIR,"static")
 ALLOWED_HOSTS = ['*']
-CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = ['https://your-domain.com']
 
 # Application definition
 

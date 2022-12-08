@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 from rest_framework.decorators import action
 
-from report.helpers import currency_converter_helper, get_list_district_of_city, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
+from report.helpers import currency_converter_helper, get_list_district_of_city, get_list_ward_of_district, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
 from .serializers import RealEstate2021Serializer
@@ -79,7 +79,7 @@ class ReportDealer(viewsets.ViewSet,):
             query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
-        if self.action not in ['price_per_district']:
+        if self.action not in ['price_per_district', 'place_of_interest']:
             if district:
                 query = query.filter(split_district=district)
         # if self.action in ['activity_dealer']:
@@ -233,6 +233,46 @@ class ReportDealer(viewsets.ViewSet,):
     #   - Số lượng bất động sản rao bán
     #   - Lọc theo từng thành phố, quận, loại bất động sản, từng quý (4 quý)
 
-    @action(methods=['get'], url_name='total-report', detail=False)
+    @action(methods=['get'], url_path='total-report', detail=False)
     def total_report(self, request):
         pass
+
+    @action(methods=['get'], url_path='places-of-interest', detail=False)
+    def place_of_interest(self, request):
+        model, query_total = self.get_queryset()
+        city = self.request.query_params.get('city')
+        data = get_list_district_of_city(city)
+        district = {}
+        total_ads = query_total.count()
+        for i in data:
+            values = model.filter(split_district=i["district"]).count()
+
+            #### total ads perdistrict #####
+            district.update(
+                {f'{i["district"]}': values})
+        return Response(data={
+            'total_ads': total_ads,
+            'ads_per_district': district,
+            'params': self.get_params(),
+        })
+
+    @action(methods=['get'], url_path='deep-places-of-interest', detail=False)
+    def deep_places_of_interest(self, request):
+        model, query_total = self.get_queryset()
+        city = self.request.query_params.get('city')
+        district = self.request.query_params.get('district')
+        data = get_list_ward_of_district(city=city, district=district)
+        ward = {}
+        total_ads = query_total.count()
+        print(data)
+        for i in data:
+            values = model.filter(split_ward=i["ward"]).count()
+
+            #### total ads perdistrict #####
+            ward.update(
+                {f'{i["ward"]}': values})
+        return Response(data={
+            'total_ads': total_ads,
+            'ads_per_ward': ward,
+            'params': self.get_params(),
+        })

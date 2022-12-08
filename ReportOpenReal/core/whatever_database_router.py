@@ -1,10 +1,10 @@
 # whatever_database_router.py
 class WhateverDatabaseRouter:  # tên tuổi méo quan trọng, dễ hiểu là được
     # với request đọc
-    route_app_labels = {'report'}
+    route_app_labels = {'report','property'}
 
     def db_for_read(self, model, **hint):
-        # nếu nó được gắn mác 'cars', thì gọi đến database 'cars'
+        # nếu nó được gắn mác 'report', thì gọi đến database 'report'
         if model._meta.app_label == 'report':
             return 'report'
 
