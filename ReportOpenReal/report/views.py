@@ -244,6 +244,7 @@ class ReportDealer(viewsets.ViewSet,):
         data = get_list_district_of_city(city)
         district = {}
         total_ads = query_total.count()
+        total_ads_of_city = model.count()
         for i in data:
             values = model.filter(split_district=i["district"]).count()
 
@@ -252,6 +253,7 @@ class ReportDealer(viewsets.ViewSet,):
                 {f'{i["district"]}': values})
         return Response(data={
             'total_ads': total_ads,
+            'total_city_ads': total_ads_of_city,
             'ads_per_district': district,
             'params': self.get_params(),
         })
@@ -264,6 +266,7 @@ class ReportDealer(viewsets.ViewSet,):
         data = get_list_ward_of_district(city=city, district=district)
         ward = {}
         total_ads = query_total.count()
+        total_district_ads = model.count()
         print(data)
         for i in data:
             # if 'ward' in i:
@@ -274,6 +277,7 @@ class ReportDealer(viewsets.ViewSet,):
                 {f'{i["ward"]}': values})
         return Response(data={
             'total_ads': total_ads,
+            'total_district_ads': total_district_ads,
             'ads_per_ward': ward,
             'params': self.get_params(),
         })
