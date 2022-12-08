@@ -36,11 +36,10 @@ def get_list_district_of_city(city) -> dict:
 
 
 def get_list_ward_of_district(city, district) -> dict:
-    # if city is None or district is None:
-    #     raise exceptions.ValidationError(ErrorHandling(
-    #         message='City and District params required', code='DATA ERROR', type="DATA ERROR", lang='en').to_representation())
+    if city is None or district is None:
+        raise exceptions.ValidationError(ErrorHandling(
+            message='City and District params required', code='DATA ERROR', type="DATA ERROR", lang='en').to_representation())
     try:
-        print(city, district)
         params = {}
         params.update({'city': city})
         params.update({'district': district})

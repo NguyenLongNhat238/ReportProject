@@ -266,7 +266,8 @@ class ReportDealer(viewsets.ViewSet,):
         total_ads = query_total.count()
         print(data)
         for i in data:
-            values = model.filter(split_ward=i["ward"]).count()
+            if 'ward' in i:
+                values = model.filter(split_ward=i["ward"]).count()
 
             #### total ads perdistrict #####
             ward.update(
