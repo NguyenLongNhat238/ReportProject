@@ -269,9 +269,9 @@ class ReportDealer(viewsets.ViewSet,):
             if 'ward' in i:
                 values = model.filter(split_ward=i["ward"]).count()
 
-            #### total ads perdistrict #####
-            ward.update(
-                {f'{i["ward"]}': values})
+                #### total ads perdistrict #####
+                ward.update(
+                    {f'{i["ward"]}': values})
         return Response(data={
             'total_ads': total_ads,
             'ads_per_ward': ward,
