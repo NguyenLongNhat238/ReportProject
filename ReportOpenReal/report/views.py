@@ -79,7 +79,7 @@ class ReportDealer(viewsets.ViewSet,):
             query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
-        if self.action not in ['price_per_district', 'place_of_interest']:
+        if self.action not in ['price_per_district', 'district_of_interest']:
             if district:
                 query = query.filter(split_district=district)
         # if self.action in ['activity_dealer']:
@@ -237,8 +237,8 @@ class ReportDealer(viewsets.ViewSet,):
     def total_report(self, request):
         pass
 
-    @action(methods=['get'], url_path='places-of-interest', detail=False)
-    def place_of_interest(self, request):
+    @action(methods=['get'], url_path='district-of-interest', detail=False)
+    def district_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
         data = get_list_district_of_city(city)
@@ -256,8 +256,8 @@ class ReportDealer(viewsets.ViewSet,):
             'params': self.get_params(),
         })
 
-    @action(methods=['get'], url_path='deep-places-of-interest', detail=False)
-    def deep_places_of_interest(self, request):
+    @action(methods=['get'], url_path='ward-of-interest', detail=False)
+    def ward_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
         district = self.request.query_params.get('district')
