@@ -15,7 +15,7 @@ from .serializers import RealEstate2021Serializer
 ####        MATH PYTHON                             ##########
 #############################################################
 from django.db.models import Count, Sum, Avg, Max, Min, Q
-from constant.config import CURRENT_UNIT, MAX_QUERY_REPORT, SEARCH_CITY_DISTRICT, UNIT_PRICE, YEAR_OF_REQUEST
+from constant.config import CURRENT_UNIT, MAX_QUERY_REPORT, UNIT_PRICE, YEAR_OF_REQUEST
 import json
 import statistics
 # Create your views here.
