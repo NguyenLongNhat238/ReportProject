@@ -43,10 +43,6 @@ class ReportDealer(viewsets.ViewSet,):
             params.update({'city': city})
         if district:
             params.update({'district': district})
-        # if self.action in ['activity_dealer']:
-        #     return params
-        # from_month, to_month = get_month_params_for_query(
-        #     data.get('from_month'), data.get('to_month'))
         from_month = data.get('from_month')
         to_month = data.get('to_month')
         if from_month:
@@ -267,7 +263,6 @@ class ReportDealer(viewsets.ViewSet,):
         ward = {}
         total_ads = query_total.count()
         total_district_ads = model.count()
-        print(data)
         for i in data:
             # if 'ward' in i:
             values = model.filter(split_ward=i["ward"]).count()
@@ -281,3 +276,44 @@ class ReportDealer(viewsets.ViewSet,):
             'ads_per_ward': ward,
             'params': self.get_params(),
         })
+
+    @action(methods=['get'],url_path='places-of-interest', detail=False)
+    def places_of_interest(self, request):
+        model, query_total = self.get_queryset()
+        city = self.request.query_params.get('city')
+        district = self.request.query_params.get('district')
+        if district: 
+            data = get_list_ward_of_district(city=city, district=district)
+            ward = {}
+            total_ads = query_total.count()
+            total_district_ads = model.count()
+            for i in data:
+                # if 'ward' in i:
+                values = model.filter(split_ward=i["ward"]).count()
+
+                #### total ads perdistrict #####
+                ward.update(
+                    {f'{i["ward"]}': values})
+            return Response(data={
+                'total_ads': total_ads,
+                'total_district_ads': total_district_ads,
+                'ads_per_ward': ward,
+                'params': self.get_params(),
+            })
+        else:
+            data = get_list_district_of_city(city)
+            district = {}
+            total_ads = query_total.count()
+            total_ads_of_city = model.count()
+            for i in data:
+                values = model.filter(split_district=i["district"]).count()
+
+                #### total ads perdistrict #####
+                district.update(
+                    {f'{i["district"]}': values})
+            return Response(data={
+                'total_ads': total_ads,
+                'total_city_ads': total_ads_of_city,
+                'ads_per_district': district,
+                'params': self.get_params(),
+            })
