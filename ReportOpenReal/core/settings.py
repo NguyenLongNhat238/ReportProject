@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s2z5)cqm+wleg@=geb^98io+5q+s^_t-@y79fp**2y!mkry9xp
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-STATIC_ROOT = os.path.join(BASE_DIR,"static")
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://your-domain.com']
 
@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    ##app config
+    # app config
     'report.apps.ReportConfig',
     'property.apps.PropertyConfig',
     # Django Elasticsearch integration
@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 
     # Django REST framework Elasticsearch integration (this package)
     'django_elasticsearch_dsl_drf',
-    
+
 ]
 
 MIDDLEWARE = [
@@ -101,28 +101,35 @@ DATABASES = {
     #     'USER': 'root',
     #     'PASSWORD': '230801',
     #     'HOST': '127.0.0.1',
-    #     # 'SERVER':'172.16.0.190:9306',  
-    #     'PORT':'3306'  
+    #     # 'SERVER':'172.16.0.190:9306',
+    #     'PORT':'3306'
     #     # mặc định localhost
     # },
-    'report':{
+    'report': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'REAL_ESTATE_VN',
         'USER': 'OpenReal',
         'PASSWORD': 'MDiiEy@6Kj6',
         'HOST': '172.16.0.190',
-        # 'SERVER':'172.16.0.190:9306',  
-        'PORT':'9306'
+        # 'SERVER':'172.16.0.190:9306',
+        'PORT': '9306'
     }
 }
 # set up router for multiple database
 DATABASE_ROUTERS = (
     'core.whatever_database_router.WhateverDatabaseRouter',
 )
+
+elk_base_url = 'elasticsearch://{user_name}:{password}@{host_ip}:{host_port}'
+elastic_search_url = elk_base_url.format(user_name='elastic',
+                                         password='admin',
+                                         # password may contain special characters
+                                         host_ip='172.16.1.27',
+                                         host_port=9200)
 # set up host for Elasticsearch
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': '172.16.1.27:9200',
+        'hosts': [elastic_search_url],
         'timeout': 60
     },
 }
@@ -177,4 +184,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
