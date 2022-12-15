@@ -231,7 +231,19 @@ class ReportDealer(viewsets.ViewSet,):
 
     @action(methods=['get'], url_path='total-report', detail=False)
     def total_report(self, request):
-        pass
+        month_now = datetime.now().date().month
+        year_now = datetime.now().date().year
+        model, query_total = self.get_queryset()
+        new_ads = query_total.filter(ads_date__month=month_now).count()
+        dealer_in_month = query_total.filter(ads_date__month=month_now).values_list('dealer_tel', flat=True)
+        dealer_befor = query_total.filter(ads_date__month__lt=month_now).filter(dealer_tel__in=dealer_in_month).values_list('dealer_tel', flat=True)
+        new_dealer = query_total.filter(ads_date__month=month_now).exclude(dealer_tel__in=dealer_befor)\
+                                .values_list('dealer_tel').distinct().count()
+        return Response(data={
+            'new_dealer': new_dealer,
+            'new_ads': new_ads,
+            # 'params': self.get_params(),
+        })
 
     @action(methods=['get'], url_path='district-of-interest', detail=False)
     def district_of_interest(self, request):
