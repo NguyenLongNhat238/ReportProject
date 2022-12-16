@@ -16,6 +16,7 @@ from .serializers import RealEstate2021Serializer
 #############################################################
 from django.db.models import Count, Sum, Avg, Max, Min, Q
 from constant.config import CURRENT_UNIT, MAX_QUERY_REPORT, UNIT_PRICE, YEAR_OF_REQUEST
+from constant.res_handing import ErrorHandling
 import json
 import statistics
 # Create your views here.
@@ -123,6 +124,7 @@ class ReportDealer(viewsets.ViewSet,):
             dealer_name__isnull=False).values_list('dealer_tel', flat=True).distinct().count()
         model = model.filter(dealer_name__isnull=False)\
             .exclude(Q(dealer_name='')).values_list('dealer_tel', flat=True).order_by('dealer_tel').distinct()
+        number_activities_dealer = model.count()
         # model = RealEstate2022.objects.filter(id__range=(0, MAX_QUERY_REPORT)).filter(dealer_tel__isnull=False)\
         #     .exclude(dealer_tel='').values_list('dealer_tel', flat=True).order_by('dealer_tel').distinct()
         activities = {}
@@ -134,6 +136,7 @@ class ReportDealer(viewsets.ViewSet,):
         return Response(data={
             'total_ads': total_ads,
             'total_dealer': total_dealer,
+            'number_activities_dealer': number_activities_dealer,
             'total_ads_per_month': activities,
             'params': self.get_params(),
         }, status=status.HTTP_200_OK)
@@ -153,6 +156,9 @@ class ReportDealer(viewsets.ViewSet,):
         ###     - max
         ###     - min
         ###     - Count
+        if model.count() < 10:
+            return Response(ErrorHandling(message='Hiện chưa cập nhật dữ liệu về vị trí và thời gian này / This location and time data has not been updated yet',
+                                          code='NONE VALUE', type='NONE VALUE', lang='en').to_representation(), status=status.HTTP_204_NO_CONTENT)
         math_price = model.aggregate(Sum('price'), Avg('price'), Max(
             'price'), Min('price'), num_price=Count('price'))
 
@@ -235,8 +241,10 @@ class ReportDealer(viewsets.ViewSet,):
         year_now = datetime.now().date().year
         model, query_total = self.get_queryset()
         new_ads = query_total.filter(ads_date__month=month_now).count()
-        dealer_in_month = query_total.filter(ads_date__month=month_now).values_list('dealer_tel', flat=True)
-        dealer_befor = query_total.filter(ads_date__month__lt=month_now).filter(dealer_tel__in=dealer_in_month).values_list('dealer_tel', flat=True)
+        dealer_in_month = query_total.filter(
+            ads_date__month=month_now).values_list('dealer_tel', flat=True)
+        dealer_befor = query_total.filter(ads_date__month__lt=month_now).filter(
+            dealer_tel__in=dealer_in_month).values_list('dealer_tel', flat=True)
         new_dealer = query_total.filter(ads_date__month=month_now).exclude(dealer_tel__in=dealer_befor)\
                                 .values_list('dealer_tel').distinct().count()
         return Response(data={
@@ -289,12 +297,12 @@ class ReportDealer(viewsets.ViewSet,):
             'params': self.get_params(),
         })
 
-    @action(methods=['get'],url_path='places-of-interest', detail=False)
+    @action(methods=['get'], url_path='places-of-interest', detail=False)
     def places_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
         district = self.request.query_params.get('district')
-        if district: 
+        if district:
             data = get_list_ward_of_district(city=city, district=district)
             ward = {}
             total_ads = query_total.count()
