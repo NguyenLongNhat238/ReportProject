@@ -158,7 +158,7 @@ class ReportDealer(viewsets.ViewSet,):
         ###     - Count
         if model.count() < 10:
             return Response(ErrorHandling(message='Hiện chưa cập nhật dữ liệu về vị trí và thời gian này / This location and time data has not been updated yet',
-                                          code='NONE VALUE', type='NONE VALUE', lang='en').to_representation(), status=status.HTTP_204_NO_CONTENT)
+                                          code='NONE VALUE', type='NONE VALUE', lang='en').to_representation(), status=status.HTTP_200_OK)
         math_price = model.aggregate(Sum('price'), Avg('price'), Max(
             'price'), Min('price'), num_price=Count('price'))
 
