@@ -240,7 +240,7 @@ class ReportDealer(viewsets.ViewSet,):
         month_now = datetime.now().date().month
         year_now = datetime.now().date().year
         model, query_total = self.get_queryset()
-        query_total = query_total.filter(ads_date__year=year_now)
+        # query_total = query_total.filter(ads_date__year=year_now)
         new_ads = query_total.filter(ads_date__month=month_now).count()
         dealer_in_month = query_total.filter(
             ads_date__month=month_now).values_list('dealer_tel', flat=True)
