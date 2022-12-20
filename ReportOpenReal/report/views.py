@@ -259,15 +259,18 @@ class ReportDealer(viewsets.ViewSet,):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
         data = get_list_district_of_city(city)
-        district = {}
+        district = []
         total_ads = query_total.count()
         total_ads_of_city = model.count()
         for i in data:
             values = model.filter(split_district=i["district"]).count()
 
             #### total ads perdistrict #####
-            district.update(
-                {f'{i["district"]}': values})
+            district.append(
+                {'id': i['id'],
+                 'name': i['district'],
+                 'values': values,
+                 'coordinates': [[i['lat'], i['lon']]]})
         return Response(data={
             'total_ads': total_ads,
             'total_city_ads': total_ads_of_city,
@@ -281,7 +284,7 @@ class ReportDealer(viewsets.ViewSet,):
         city = self.request.query_params.get('city')
         district = self.request.query_params.get('district')
         data = get_list_ward_of_district(city=city, district=district)
-        ward = {}
+        ward = []
         total_ads = query_total.count()
         total_district_ads = model.count()
         for i in data:
@@ -289,8 +292,12 @@ class ReportDealer(viewsets.ViewSet,):
             values = model.filter(split_ward=i["ward"]).count()
 
             #### total ads perdistrict #####
-            ward.update(
-                {f'{i["ward"]}': values})
+            ward.append({
+                'id': i['id'],
+                'name': i['ward'],
+                'values': values,
+                'coordinates': [[i['lat'], i['lon']]]
+            })
         return Response(data={
             'total_ads': total_ads,
             'total_district_ads': total_district_ads,
@@ -305,16 +312,21 @@ class ReportDealer(viewsets.ViewSet,):
         district = self.request.query_params.get('district')
         if district:
             data = get_list_ward_of_district(city=city, district=district)
-            ward = {}
+            print(data)
+            ward = []
             total_ads = query_total.count()
             total_district_ads = model.count()
             for i in data:
                 # if 'ward' in i:
                 values = model.filter(split_ward=i["ward"]).count()
-
                 #### total ads perdistrict #####
-                ward.update(
-                    {f'{i["ward"]}': values})
+                ward.append({
+                    'id': i['id'],
+                    'name': i['ward'],
+                    'values': values,
+                    'coordinates': [[i['lat'], i['lon']]]
+                })
+
             return Response(data={
                 'total_ads': total_ads,
                 'total_district_ads': total_district_ads,
@@ -323,18 +335,86 @@ class ReportDealer(viewsets.ViewSet,):
             })
         else:
             data = get_list_district_of_city(city)
-            district = {}
+            district = []
             total_ads = query_total.count()
             total_ads_of_city = model.count()
             for i in data:
                 values = model.filter(split_district=i["district"]).count()
 
                 #### total ads perdistrict #####
-                district.update(
-                    {f'{i["district"]}': values})
+                district.append(
+                    {'id': i['id'],
+                     'name': i['district'],
+                     'values': values,
+                     'coordinates': [[i['lat'], i['lon']]]})
             return Response(data={
                 'total_ads': total_ads,
                 'total_city_ads': total_ads_of_city,
                 'ads_per_district': district,
                 'params': self.get_params(),
             })
+
+
+class DataForExportViewSet(viewsets.ViewSet):
+    def get_params(self):
+        data = self.request.query_params
+        city = data.get('city')
+        district = data.get('district')
+        ads_year = valid_year_uda(data.get('ads_year'))
+        year = data.get('year')
+
+        params = {}
+        if city:
+            params.update({'city': city})
+        if district:
+            params.update({'district': district})
+        from_month = data.get('from_month')
+        to_month = data.get('to_month')
+        if from_month:
+            from_month, to_month = get_month_params_for_query(
+                data.get('from_month'), data.get('to_month'))
+            params.update({'from_month': from_month,
+                           'to_month': to_month})
+        if ads_year:
+            params.update({'ads_year': ads_year})
+        if year:
+            params.update({'year': year})
+        return params
+
+    def get_queryset(self):
+        data = self.request.query_params
+        year = get_year_query_drf(data.get('year'))
+        ads_year = valid_year_uda(data.get('ads_year'))
+        city = data.get('city')
+        district = data.get('district')
+        if year == 2022:
+
+            query = query_total = RealEstate2022.objects.all()
+        # elif year == 2021:
+        #     query_total = RealEstate2021.objects.all()
+        #     query = RealEstate2021.objects.all()
+        else:
+            query = query_total = RealEstate2022.objects.all()
+
+        if ads_year:
+            query = query.filter(ads_date__year=ads_year)
+        if city:
+            query = query.filter(split_city=city)
+        if self.action not in ['price_per_district', 'district_of_interest']:
+            if district:
+                query = query.filter(split_district=district)
+        # if self.action in ['activity_dealer']:
+        #     return query, query_total
+        if data.get('from_month'):
+            from_month, to_month = get_month_params_for_query(
+                data.get('from_month'), data.get('to_month'))
+            print(from_month, to_month)
+            if from_month:
+                query = query.filter(ads_date__month__gte=from_month).filter(
+                    ads_date__month__lte=to_month)
+
+        return query, query_total
+
+    @action(methods=['post'], detail=False, url_path='data-for-exports')
+    def data_for_exports(self, request):
+        pass
