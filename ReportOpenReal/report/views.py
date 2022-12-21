@@ -258,26 +258,26 @@ class ReportDealer(viewsets.ViewSet,):
     def district_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
-        data = get_list_district_of_city(city)
+        data, data_map = get_list_district_of_city(city)
         district = []
         total_ads = query_total.count()
         total_ads_of_city = model.count()
         for i in data:
             values = model.filter(split_district=i["district"]).count()
-            lat, lon = None, None
-            if ('lat' and 'lon') in i.keys():
-                lat, lon = i['lat'], i['lon']
+            # lat, lon = None, None
+            # if ('lat' and 'lon') in i.keys():
+            #     lat, lon = i['lat'], i['lon']
             #### total ads perdistrict #####
             district.append({
                 'id': i['id'],
                 'name': i['district'],
                 'values': values,
-                'coordinates': [[lat, lon]]
             })
         return Response(data={
             'total_ads': total_ads,
             'total_city_ads': total_ads_of_city,
             'ads_per_district': district,
+            'data_map': data_map,
             'params': self.get_params(),
         })
 
@@ -293,15 +293,15 @@ class ReportDealer(viewsets.ViewSet,):
         for i in data:
             # if 'ward' in i:
             values = model.filter(split_ward=i["ward"]).count()
-            lat, lon = None, None
-            if ('lat' and 'lon') in i.keys():
-                lat, lon = i['lat'], i['lon']
+            # lat, lon = None, None
+            # if ('lat' and 'lon') in i.keys():
+            #     lat, lon = i['lat'], i['lon']
             #### total ads perdistrict #####
             ward.append({
                 'id': i['id'],
                 'name': i['ward'],
                 'values': values,
-                'coordinates': [[lat, lon]]
+                # 'coordinates': [[lat, lon]]
             })
         return Response(data={
             'total_ads': total_ads,
@@ -314,60 +314,60 @@ class ReportDealer(viewsets.ViewSet,):
     def places_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
-        district = self.request.query_params.get('district')
-        if district:
-            data = get_list_ward_of_district(city=city, district=district)
-            print(data)
-            ward = []
-            total_ads = query_total.count()
-            total_district_ads = model.count()
-            for i in data:
-                # if 'ward' in i:
-                values = model.filter(split_ward=i["ward"]).count()
-                lat_lon = None
-                if 'lat_lon' in i.keys():
-                    lat_lon = i['lat_lon'][0]
-                # if ('lat' and 'lon') in i.keys():
-                #     lat, lon = i['lat'], i['lon']
-                #### total ads perdistrict #####
-                ward.append({
-                    'id': i['id'],
-                    'name': i['ward'],
-                    'values': values,
-                    'coordinates': lat_lon
-                })
+        # district = self.request.query_params.get('district')
+        # if district:
+        #     data = get_list_ward_of_district(city=city, district=district)
+        #     print(data)
+        #     ward = []
+        #     total_ads = query_total.count()
+        #     total_district_ads = model.count()
+        #     for i in data:
+        #         # if 'ward' in i:
+        #         values = model.filter(split_ward=i["ward"]).count()
+        #         lat_lon = None
+        #         if 'lat_lon' in i.keys():
+        #             lat_lon = i['lat_lon'][0]
+        #         # if ('lat' and 'lon') in i.keys():
+        #         #     lat, lon = i['lat'], i['lon']
+        #         #### total ads perdistrict #####
+        #         ward.append({
+        #             'id': i['id'],
+        #             'name': i['ward'],
+        #             'values': values,
+        #             'coordinates': lat_lon
+        #         })
 
-            return Response(data={
-                'total_ads': total_ads,
-                'total_district_ads': total_district_ads,
-                'ads_per_ward': ward,
-                'params': self.get_params(),
+        #     return Response(data={
+        #         'total_ads': total_ads,
+        #         'total_district_ads': total_district_ads,
+        #         'ads_per_ward': ward,
+        #         'params': self.get_params(),
+        #     })
+        # else:
+        data, data_map = get_list_district_of_city(city)
+        district = []
+        total_ads = query_total.count()
+        total_ads_of_city = model.count()
+        for i in data:
+            values = model.filter(split_district=i["district"]).count()
+            lat_lon = None
+            # if 'lat_lon' in i.keys():
+            #     lat_lon = i['lat_lon'][0]
+            # if ('lat' and 'lon') in i.keys():
+            #     lat, lon = i['lat'], i['lon']
+            #### total ads perdistrict #####
+            district.append({
+                'id': i['id'],
+                'name': i['district'],
+                'values': values,
             })
-        else:
-            data = get_list_district_of_city(city)
-            district = []
-            total_ads = query_total.count()
-            total_ads_of_city = model.count()
-            for i in data:
-                values = model.filter(split_district=i["district"]).count()
-                lat_lon = None
-                if 'lat_lon' in i.keys():
-                    lat_lon = i['lat_lon'][0]
-                # if ('lat' and 'lon') in i.keys():
-                #     lat, lon = i['lat'], i['lon']
-                #### total ads perdistrict #####
-                district.append({
-                    'id': i['id'],
-                    'name': i['district'],
-                    'values': values,
-                    'coordinates': lat_lon
-                })
-            return Response(data={
-                'total_ads': total_ads,
-                'total_city_ads': total_ads_of_city,
-                'ads_per_district': district,
-                'params': self.get_params(),
-            })
+        return Response(data={
+            'total_ads': total_ads,
+            'total_city_ads': total_ads_of_city,
+            'ads_per_district': district,
+            'data_map': data_map,
+            'params': self.get_params(),
+        })
 
 
 class DataForExportViewSet(viewsets.ViewSet):

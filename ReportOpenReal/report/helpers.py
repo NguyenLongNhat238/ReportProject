@@ -1,5 +1,6 @@
 
 from datetime import datetime
+import json
 import numbers
 import requests
 from constant.config import SEARCH_CITY_DISTRICT_WARD, UNIT_PRICE, YEAR_OF_REQUEST, SEARCH_CITY_DISTRICT_WARD_LOCAL
@@ -22,14 +23,26 @@ def dictfetchall(cursor):
 def currency_converter_helper(money):
     return round(money/UNIT_PRICE, 2)
 
+def get_map_data(city):
+    if city.startswith('Tỉnh '):
+        city = city[5:]
+    if city.startswith('Thành phố '):
+        city = city[10:]
+    with open('gadm36_VNM_2.json','r', encoding='UTF-8') as file:
+        json_map = json.load(file)
+    # list(filter(lambda x: x['NAME_1'] == city, json_map))
+    in_put_json_map = json_map['features']
+    out_put_json_map = [x for x in in_put_json_map if x['properties']['NAME_1'] == city]
+    return out_put_json_map
 
 def get_list_district_of_city(city) -> dict:
     try:
+        data_map = get_map_data(city)
         params = {}
         params.update({'city': city})
         data = requests.get(f'{SEARCH_CITY_DISTRICT_WARD}', params=params)
         data = data.json()
-        return data['results']
+        return data['results'], data_map
     except:
         raise exceptions.APIException(ErrorHandling(
             message='The system is maintenance', code='SERVER ERROR', type="SERVER ERROR", lang='en').to_representation())
