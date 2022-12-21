@@ -37,6 +37,17 @@ def get_map_data(city):
 
 def get_list_district_of_city(city) -> dict:
     try:
+        params = {}
+        params.update({'city': city})
+        data = requests.get(f'{SEARCH_CITY_DISTRICT_WARD}', params=params)
+        data = data.json()
+        return data['results']
+    except:
+        raise exceptions.APIException(ErrorHandling(
+            message='The system is maintenance', code='SERVER ERROR', type="SERVER ERROR", lang='en').to_representation())
+
+def get_data_vs_map_district_of_city(city) -> dict:
+    try:
         data_map = get_map_data(city)
         params = {}
         params.update({'city': city})

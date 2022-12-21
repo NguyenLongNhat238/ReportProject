@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 from rest_framework.decorators import action
 
-from report.helpers import currency_converter_helper, get_list_district_of_city, get_list_ward_of_district, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
+from report.helpers import currency_converter_helper, get_data_vs_map_district_of_city, get_list_district_of_city, get_list_ward_of_district, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
 from .serializers import RealEstate2021Serializer
@@ -258,7 +258,7 @@ class ReportDealer(viewsets.ViewSet,):
     def district_of_interest(self, request):
         model, query_total = self.get_queryset()
         city = self.request.query_params.get('city')
-        data, data_map = get_list_district_of_city(city)
+        data, data_map = get_data_vs_map_district_of_city(city)
         district = []
         total_ads = query_total.count()
         total_ads_of_city = model.count()
@@ -344,7 +344,7 @@ class ReportDealer(viewsets.ViewSet,):
         #         'params': self.get_params(),
         #     })
         # else:
-        data, data_map = get_list_district_of_city(city)
+        data, data_map = get_data_vs_map_district_of_city(city)
         district = []
         total_ads = query_total.count()
         total_ads_of_city = model.count()
