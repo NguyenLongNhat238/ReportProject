@@ -46,6 +46,18 @@ def get_list_district_of_city(city) -> dict:
         raise exceptions.APIException(ErrorHandling(
             message='The system is maintenance', code='SERVER ERROR', type="SERVER ERROR", lang='en').to_representation())
 
+def remove_type_of_district(district):
+    if district.startswith('Huyện '):
+        district = district[6:]
+    if district.startswith('Thị xã '):
+        district = district[7:]
+    if district.startswith('Thành phố '):
+        district = district[10:]
+    if district.startswith('Quận '):
+        district = district[5:]
+    return district
+
+
 def get_data_vs_map_district_of_city(city) -> dict:
     try:
         data_map = get_map_data(city)
@@ -53,6 +65,12 @@ def get_data_vs_map_district_of_city(city) -> dict:
         params.update({'city': city})
         data = requests.get(f'{SEARCH_CITY_DISTRICT_WARD}', params=params)
         data = data.json()
+        for i in data['results']:
+            name_map = remove_type_of_district(i['district'])
+            i.update({
+                'name_map': name_map
+            })
+            
         return data['results'], data_map
     except:
         raise exceptions.APIException(ErrorHandling(

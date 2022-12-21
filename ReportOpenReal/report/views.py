@@ -350,16 +350,12 @@ class ReportDealer(viewsets.ViewSet,):
         total_ads_of_city = model.count()
         for i in data:
             values = model.filter(split_district=i["district"]).count()
-            lat_lon = None
-            # if 'lat_lon' in i.keys():
-            #     lat_lon = i['lat_lon'][0]
-            # if ('lat' and 'lon') in i.keys():
-            #     lat, lon = i['lat'], i['lon']
-            #### total ads perdistrict #####
+            # append data of district in to dict district
             district.append({
                 'id': i['id'],
                 'name': i['district'],
                 'values': values,
+                'name_map': i['name_map']
             })
         return Response(data={
             'total_ads': total_ads,
