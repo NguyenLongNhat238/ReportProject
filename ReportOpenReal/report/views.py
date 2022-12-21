@@ -324,15 +324,17 @@ class ReportDealer(viewsets.ViewSet,):
             for i in data:
                 # if 'ward' in i:
                 values = model.filter(split_ward=i["ward"]).count()
-                lat, lon = None, None
-                if ('lat' and 'lon') in i.keys():
-                    lat, lon = i['lat'], i['lon']
+                lat_lon = None
+                if 'lat_lon' in i.keys():
+                    lat_lon = i['lat_lon'][0]
+                # if ('lat' and 'lon') in i.keys():
+                #     lat, lon = i['lat'], i['lon']
                 #### total ads perdistrict #####
                 ward.append({
                     'id': i['id'],
                     'name': i['ward'],
                     'values': values,
-                    'coordinates': [[lat, lon]]
+                    'coordinates': lat_lon
                 })
 
             return Response(data={
@@ -348,15 +350,17 @@ class ReportDealer(viewsets.ViewSet,):
             total_ads_of_city = model.count()
             for i in data:
                 values = model.filter(split_district=i["district"]).count()
-                lat, lon = None, None
-                if ('lat' and 'lon') in i.keys():
-                    lat, lon = i['lat'], i['lon']
+                lat_lon = None
+                if 'lat_lon' in i.keys():
+                    lat_lon = i['lat_lon'][0]
+                # if ('lat' and 'lon') in i.keys():
+                #     lat, lon = i['lat'], i['lon']
                 #### total ads perdistrict #####
                 district.append({
                     'id': i['id'],
                     'name': i['district'],
                     'values': values,
-                    'coordinates': [[lat, lon]]
+                    'coordinates': lat_lon
                 })
             return Response(data={
                 'total_ads': total_ads,
