@@ -76,7 +76,7 @@ class ReportDealer(viewsets.ViewSet,):
             query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
-        if self.action not in ['price_per_district', 'district_of_interest']:
+        if self.action not in ['price_per_district', 'district_of_interest', 'places_of_interest']:
             if district:
                 query = query.filter(split_district=district)
         # if self.action in ['activity_dealer']:
