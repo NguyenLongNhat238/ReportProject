@@ -11,6 +11,11 @@ services:
       - .:/report_openreal
     ports:
       - "8000:8000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
   # message_queue:
   #   build:
   #     context: .
