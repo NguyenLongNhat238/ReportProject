@@ -58,8 +58,11 @@ def remove_type_of_district(district):
     return district
 
 
-def get_data_vs_map_district_of_city(city) -> dict:
+def get_data_vs_map_district_of_city(city=None) -> dict:
     try:
+        # if city is None:
+        #     raise exceptions.ValidationError(ErrorHandling(
+        #         message='city required', code='DATA ERROR', type="DATA ERROR", lang='en').to_representation())
         data_map = get_map_data(city)
         params = {}
         params.update({'city': city})

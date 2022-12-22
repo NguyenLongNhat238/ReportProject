@@ -8,9 +8,10 @@ from datetime import datetime
 from rest_framework.decorators import action
 
 from report.helpers import currency_converter_helper, get_data_vs_map_district_of_city, get_list_district_of_city, get_list_ward_of_district, get_month_params_for_query, get_year_params, get_year_query_drf, valid_year_uda
+from report.paginations import RealEstate2022Paginator
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
-from .serializers import RealEstate2021Serializer
+from .serializers import RealEstate2021Serializer, RealEstate2022Serializer
 ###############################################################
 ####        MATH PYTHON                             ##########
 #############################################################
@@ -429,3 +430,10 @@ class DataForExportViewSet(viewsets.ViewSet):
     @action(methods=['post'], detail=False, url_path='data-for-exports')
     def data_for_exports(self, request):
         pass
+
+
+class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
+    serializer_class = RealEstate2022Serializer
+    pagination_class = RealEstate2022Paginator
+    queryset = RealEstate2022.objects.all()
+
