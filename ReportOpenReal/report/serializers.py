@@ -17,7 +17,7 @@ class RealEstate2022Serializer(serializers.ModelSerializer):
     class Meta:
 
         model = RealEstate2022
-        fields = ['id_client', 'site', 'ads_link', 'for_sale', 'for_lease', 'to_buy',
+        fields = ['id', 'id_client', 'site', 'ads_link', 'for_sale', 'for_lease', 'to_buy',
                   'to_lease', 'land_type', 'ads_date', 'price', 'price_m2', 'surface',
                   'used_surface', 'pro_width', 'pro_length', 'legal_status', 'pro_current_status', 'pro_direction',
                   'frontage', 'alley_access', 'pro_utilities', 'nb_rooms', 'nb_floors', 'full_address', 'format_hs', 'format_street',
