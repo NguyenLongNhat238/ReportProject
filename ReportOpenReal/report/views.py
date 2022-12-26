@@ -437,3 +437,23 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
     pagination_class = RealEstate2022Paginator
     queryset = RealEstate2022.objects.all()
 
+    def get_queryset(self):
+        query = RealEstate2022.objects.all()
+        data = self.request.query_params
+        ads_year = valid_year_uda(data.get('ads_year'))
+        city = data.get('city')
+        district = data.get('district')
+        from_month = data.get('from_month')
+        to_month = data.get('to_month')
+        if ads_year:
+            query = query.filter(ads_date__year=ads_year)
+        if city:
+            query = query.filter(split_city=city)
+        if district:
+            query = query.filter(split_district=district)
+        if from_month:
+            from_month, to_month = get_month_params_for_query(
+                data.get('from_month'), data.get('to_month'))
+            query = query.filter(ads_date__month__gte=from_month).filter(
+                ads_date__month__lte=to_month)
+        return query
