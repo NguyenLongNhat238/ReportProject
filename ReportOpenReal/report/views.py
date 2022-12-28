@@ -92,7 +92,6 @@ class ReportDealer(viewsets.ViewSet,):
             query = query.filter(ads_date__lte=to_date)
         # if self.action in ['activity_dealer']:
         #     return query, query_total
-        
 
         return query, query_total
 
@@ -439,13 +438,13 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
     def get_queryset(self):
         query = RealEstate2022.objects.all()
         data = self.request.query_params
-        ads_year = valid_year_uda(data.get('ads_year'))
+        # ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
         from_date = data.get('from_date')
         to_date = data.get('to_date')
-        if ads_year:
-            query = query.filter(ads_date__year=ads_year)
+        # if ads_year:
+        #     query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
         if district:
