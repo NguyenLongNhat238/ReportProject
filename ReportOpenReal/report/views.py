@@ -11,7 +11,7 @@ from report.helpers import currency_converter_helper, get_data_vs_map_district_o
 from report.paginations import RealEstate2022Paginator
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
-from .serializers import RealEstate2021Serializer, RealEstate2022Serializer
+from .serializers import RealEstate2021Serializer, RealEstate2022Serializer, ReportParamsValidateSerializer
 ###############################################################
 ####        MATH PYTHON                             ##########
 #############################################################
@@ -45,13 +45,12 @@ class ReportDealer(viewsets.ViewSet,):
             params.update({'city': city})
         if district:
             params.update({'district': district})
-        from_month = data.get('from_month')
-        to_month = data.get('to_month')
-        if from_month:
-            from_month, to_month = get_month_params_for_query(
-                data.get('from_month'), data.get('to_month'))
-            params.update({'from_month': from_month,
-                           'to_month': to_month})
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
+        if from_date:
+            params.update({'from_date': from_date})
+        if to_date:
+            params.update({'to_date': to_date})
         if ads_year:
             params.update({'ads_year': ads_year})
         if year:
@@ -60,10 +59,16 @@ class ReportDealer(viewsets.ViewSet,):
 
     def get_queryset(self):
         data = self.request.query_params
+        # validate params
+        serializer = ReportParamsValidateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        # params
         year = get_year_query_drf(data.get('year'))
         ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
         if year == 2022:
 
             query = query_total = RealEstate2022.objects.all()
@@ -80,15 +85,14 @@ class ReportDealer(viewsets.ViewSet,):
         if self.action not in ['price_per_district', 'district_of_interest', 'places_of_interest']:
             if district:
                 query = query.filter(split_district=district)
+
+        if from_date:
+            query = query.filter(ads_date__gte=from_date)
+        if to_date:
+            query = query.filter(ads_date__lte=to_date)
         # if self.action in ['activity_dealer']:
         #     return query, query_total
-        if data.get('from_month'):
-            from_month, to_month = get_month_params_for_query(
-                data.get('from_month'), data.get('to_month'))
-            print(from_month, to_month)
-            if from_month:
-                query = query.filter(ads_date__month__gte=from_month).filter(
-                    ads_date__month__lte=to_month)
+        
 
         return query, query_total
 
@@ -374,33 +378,33 @@ class DataForExportViewSet(viewsets.ViewSet):
         district = data.get('district')
         ads_year = valid_year_uda(data.get('ads_year'))
         year = data.get('year')
-
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
         params = {}
         if city:
             params.update({'city': city})
         if district:
             params.update({'district': district})
-        from_month = data.get('from_month')
-        to_month = data.get('to_month')
-        if from_month:
-            from_month, to_month = get_month_params_for_query(
-                data.get('from_month'), data.get('to_month'))
-            params.update({'from_month': from_month,
-                           'to_month': to_month})
-        if ads_year:
-            params.update({'ads_year': ads_year})
-        if year:
-            params.update({'year': year})
+        if from_date:
+            params.update({'from_date': from_date})
+        if to_date:
+            params.update({'to_date': to_date})
         return params
 
     def get_queryset(self):
         data = self.request.query_params
+        # validate params
+        serializer = ReportParamsValidateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        # params
         year = get_year_query_drf(data.get('year'))
         ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
-        if year == 2022:
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
 
+        if year == 2022:
             query = query_total = RealEstate2022.objects.all()
         # elif year == 2021:
         #     query_total = RealEstate2021.objects.all()
@@ -415,15 +419,10 @@ class DataForExportViewSet(viewsets.ViewSet):
         if self.action not in ['price_per_district', 'district_of_interest']:
             if district:
                 query = query.filter(split_district=district)
-        # if self.action in ['activity_dealer']:
-        #     return query, query_total
-        if data.get('from_month'):
-            from_month, to_month = get_month_params_for_query(
-                data.get('from_month'), data.get('to_month'))
-            print(from_month, to_month)
-            if from_month:
-                query = query.filter(ads_date__month__gte=from_month).filter(
-                    ads_date__month__lte=to_month)
+        if from_date:
+            query = query.filter(ads_date__gte=from_date)
+        if to_date:
+            query = query.filter(ads_date__lte=to_date)
 
         return query, query_total
 
@@ -443,17 +442,30 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
         ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
-        from_month = data.get('from_month')
-        to_month = data.get('to_month')
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
         if ads_year:
             query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
         if district:
             query = query.filter(split_district=district)
-        if from_month:
-            from_month, to_month = get_month_params_for_query(
-                data.get('from_month'), data.get('to_month'))
-            query = query.filter(ads_date__month__gte=from_month).filter(
-                ads_date__month__lte=to_month)
+        if from_date:
+            query = query.filter(ads_date__gte=from_date)
+        if to_date:
+            query = query.filter(ads_date__lte=to_date)
         return query
+
+
+# if from_month:
+        #     from_month, to_month = get_month_params_for_query(
+        #         data.get('from_month'), data.get('to_month'))
+        #     query = query.filter(ads_date__month__gte=from_month).filter(
+        #         ads_date__month__lte=to_month)
+# if data.get('from_month'):
+#             from_month, to_month = get_month_params_for_query(
+#                 data.get('from_month'), data.get('to_month'))
+#             print(from_month, to_month)
+#             if from_month:
+#                 query = query.filter(ads_date__month__gte=from_month).filter(
+#                     ads_date__month__lte=to_month)

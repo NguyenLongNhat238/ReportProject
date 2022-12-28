@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from django.conf import settings
+from dateutil.parser import parse
+from constant.config import MAX_TIME_QUERY
 from .models import RealEstate2021, RealEstate2022
+from rest_framework import exceptions
+from datetime import datetime, date
 
 
 class RealEstate2021Serializer(serializers.ModelSerializer):
@@ -24,8 +28,46 @@ class RealEstate2022Serializer(serializers.ModelSerializer):
                   'dealer_name', 'dealer_address', 'dealer_email', 'dealer_type', 'dealer_tel',
                   'project_name', 'agency_name', 'agency_address', 'agency_city', 'agency_tel', 'agency_website']
 
-        # def to_representation(self, obj):
-        #     primitive_repr = super(RealEstate2022Serializer, self).to_representation(obj)
-        #     primitive_repr['The Author'] = primitive_repr['author_name']
 
-        #     return primitive_repr
+class ReportParamsValidateSerializer(serializers.Serializer):
+    from_date = serializers.DateField(required=False)
+    to_date = serializers.DateField(required=False)
+    city = serializers.CharField(required=False)
+    district = serializers.CharField(required=False)
+    ads_year = serializers.IntegerField(required=False, default=2022)
+
+    def is_valid(self, *, raise_exception=False):
+        assert hasattr(self, 'initial_data'), (
+            'Cannot call `.is_valid()` as no `data=` keyword argument was '
+            'passed when instantiating the serializer instance.'
+        )
+
+        if not hasattr(self, '_validated_data'):
+            try:
+                self._validated_data = self.run_validation(self.initial_data)
+            except exceptions.ValidationError as exc:
+                self._validated_data = {}
+                self._errors = exc.detail
+            else:
+                self._errors = {}
+        try:
+            if self._validated_data['from_date'] > self._validated_data['to_date']:
+                self._errors.update({
+                    'from_date and to_date': 'from_date must be small than to_date'
+                })
+
+            if self._validated_data['to_date'] > date.today():
+                self._errors.update({
+                    'to_date ': 'to_date must be small than now date'
+                })
+        except:
+            pass
+        # if (self.to_date - self.from_date)>MAX_TIME_QUERY:
+        #     self._errors.append({
+        #         'from_date and to_date': 'from_date must be small than to_date'
+        #     })
+
+        if self._errors and raise_exception:
+            raise exceptions.ValidationError(self.errors)
+
+        return not bool(self._errors)
