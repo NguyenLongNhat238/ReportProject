@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from django.conf import settings
 from dateutil.parser import parse
-from constant.config import MAX_TIME_QUERY
+from constant.config import MAX_MONTH_QUERY_REPORTS
 from .models import RealEstate2021, RealEstate2022
 from rest_framework import exceptions
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 
 class RealEstate2021Serializer(serializers.ModelSerializer):
@@ -36,38 +36,57 @@ class ReportParamsValidateSerializer(serializers.Serializer):
     district = serializers.CharField(required=False)
     ads_year = serializers.IntegerField(required=False, default=2022)
 
-    def is_valid(self, *, raise_exception=False):
-        assert hasattr(self, 'initial_data'), (
-            'Cannot call `.is_valid()` as no `data=` keyword argument was '
-            'passed when instantiating the serializer instance.'
-        )
+    # def is_valid(self, *, raise_exception=False):
+    #     assert hasattr(self, 'initial_data'), (
+    #         'Cannot call `.is_valid()` as no `data=` keyword argument was '
+    #         'passed when instantiating the serializer instance.'
+    #     )
 
-        if not hasattr(self, '_validated_data'):
-            try:
-                self._validated_data = self.run_validation(self.initial_data)
-            except exceptions.ValidationError as exc:
-                self._validated_data = {}
-                self._errors = exc.detail
-            else:
-                self._errors = {}
-        try:
-            if self._validated_data['from_date'] > self._validated_data['to_date']:
-                self._errors.update({
-                    'from_date and to_date': 'from_date must be small than to_date'
-                })
+    #     if not hasattr(self, '_validated_data'):
+    #         try:
+    #             self._validated_data = self.run_validation(self.initial_data)
+    #         except exceptions.ValidationError as exc:
+    #             self._validated_data = {}
+    #             self._errors = exc.detail
+    #         else:
+    #             self._errors = {}
+    #     try:
+    #         if self._validated_data['from_date'] > self._validated_data['to_date']:
+    #             self._errors.update({
+    #                 'from_date and to_date': 'from_date must be small than to_date'
+    #             })
 
-            if self._validated_data['to_date'] > date.today():
-                self._errors.update({
-                    'to_date ': 'to_date must be small than now date'
-                })
-        except:
-            pass
-        # if (self.to_date - self.from_date)>MAX_TIME_QUERY:
-        #     self._errors.append({
-        #         'from_date and to_date': 'from_date must be small than to_date'
-        #     })
+    #         if self._validated_data['to_date'] > date.today():
+    #             self._errors.update({
+    #                 'to_date ': 'to_date must be small than now date'
+    #             })
+    #     except:
+    #         pass
 
-        if self._errors and raise_exception:
-            raise exceptions.ValidationError(self.errors)
+    #     if (self.to_date - self.from_date) > MAX_MONTH_QUERY_REPORTS*30:
+    #         self._errors.append({
+    #             'from_date and to_date': 'from_date must be small than to_date'
+    #         })
 
-        return not bool(self._errors)
+    #     if self._errors and raise_exception:
+    #         raise exceptions.ValidationError(self.errors)
+
+    #     return not bool(self._errors)
+
+    def validate(self, data):
+        from_date = data['from_date']
+        to_date = data['to_date']
+        error = []
+        if from_date > to_date:
+            raise serializers.ValidationError({'error': 'Ngày bắt đầu phải nhỏ hơn ngày kết thúc.'
+                                               })
+        if to_date > date.today():
+            raise serializers.ValidationError({'error': 'Ngày kết thúc phải không được quá ngày hôm nay.'
+                                               })
+        if (to_date - from_date) > timedelta(days=MAX_MONTH_QUERY_REPORTS*30):
+            raise serializers.ValidationError({'error': f'Bạn chỉ có thể xem báo cáo trong vòng {MAX_MONTH_QUERY_REPORTS} tháng.'
+                                               })
+
+        # if error:
+        #     raise serializers.ValidationError({'error': 'aa'})
+        return super().validate(data)

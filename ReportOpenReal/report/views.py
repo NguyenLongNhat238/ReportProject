@@ -37,7 +37,6 @@ class ReportDealer(viewsets.ViewSet,):
         data = self.request.query_params
         city = data.get('city')
         district = data.get('district')
-        ads_year = valid_year_uda(data.get('ads_year'))
         year = data.get('year')
 
         params = {}
@@ -51,8 +50,6 @@ class ReportDealer(viewsets.ViewSet,):
             params.update({'from_date': from_date})
         if to_date:
             params.update({'to_date': to_date})
-        if ads_year:
-            params.update({'ads_year': ads_year})
         if year:
             params.update({'year': year})
         return params
@@ -64,7 +61,6 @@ class ReportDealer(viewsets.ViewSet,):
         serializer.is_valid(raise_exception=True)
         # params
         year = get_year_query_drf(data.get('year'))
-        ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
         from_date = data.get('from_date')
@@ -78,8 +74,6 @@ class ReportDealer(viewsets.ViewSet,):
         else:
             query = query_total = RealEstate2022.objects.all()
 
-        if ads_year:
-            query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
         if self.action not in ['price_per_district', 'district_of_interest', 'places_of_interest']:
@@ -375,8 +369,6 @@ class DataForExportViewSet(viewsets.ViewSet):
         data = self.request.query_params
         city = data.get('city')
         district = data.get('district')
-        ads_year = valid_year_uda(data.get('ads_year'))
-        year = data.get('year')
         from_date = data.get('from_date')
         to_date = data.get('to_date')
         params = {}
@@ -397,7 +389,6 @@ class DataForExportViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         # params
         year = get_year_query_drf(data.get('year'))
-        ads_year = valid_year_uda(data.get('ads_year'))
         city = data.get('city')
         district = data.get('district')
         from_date = data.get('from_date')
@@ -411,8 +402,6 @@ class DataForExportViewSet(viewsets.ViewSet):
         else:
             query = query_total = RealEstate2022.objects.all()
 
-        if ads_year:
-            query = query.filter(ads_date__year=ads_year)
         if city:
             query = query.filter(split_city=city)
         if self.action not in ['price_per_district', 'district_of_interest']:
@@ -438,13 +427,15 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
     def get_queryset(self):
         query = RealEstate2022.objects.all()
         data = self.request.query_params
-        # ads_year = valid_year_uda(data.get('ads_year'))
+        # validate data params
+        serialzier = ReportParamsValidateSerializer(data=data)
+        serialzier.is_valid(raise_exception=True)
+        # params
         city = data.get('city')
         district = data.get('district')
         from_date = data.get('from_date')
         to_date = data.get('to_date')
-        # if ads_year:
-        #     query = query.filter(ads_date__year=ads_year)
+        # filter query
         if city:
             query = query.filter(split_city=city)
         if district:
