@@ -30,10 +30,10 @@ class RealEstate2022Serializer(serializers.ModelSerializer):
 
 
 class ReportParamsValidateSerializer(serializers.Serializer):
-    from_date = serializers.DateField(required=False)
-    to_date = serializers.DateField(required=False)
-    city = serializers.CharField(required=False)
-    district = serializers.CharField(required=False)
+    from_date = serializers.DateField(required=True)
+    to_date = serializers.DateField(required=True)
+    city = serializers.CharField(required=True)
+    district = serializers.CharField(required=True)
     ads_year = serializers.IntegerField(required=False, default=2022)
 
     # def is_valid(self, *, raise_exception=False):

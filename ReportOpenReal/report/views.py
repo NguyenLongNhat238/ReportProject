@@ -57,8 +57,9 @@ class ReportDealer(viewsets.ViewSet,):
     def get_queryset(self):
         data = self.request.query_params
         # validate params
-        serializer = ReportParamsValidateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        if self.action not in ['total_report']:
+            serializer = ReportParamsValidateSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
         # params
         year = get_year_query_drf(data.get('year'))
         city = data.get('city')
