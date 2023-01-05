@@ -34,44 +34,9 @@ class ReportParamsValidateSerializer(serializers.Serializer):
     to_date = serializers.DateField(required=True)
     city = serializers.CharField(required=True)
     district = serializers.CharField(required=True)
+    ward = serializers.CharField(required=False)
+    street = serializers.CharField(required=False)
     ads_year = serializers.IntegerField(required=False, default=2022)
-
-    # def is_valid(self, *, raise_exception=False):
-    #     assert hasattr(self, 'initial_data'), (
-    #         'Cannot call `.is_valid()` as no `data=` keyword argument was '
-    #         'passed when instantiating the serializer instance.'
-    #     )
-
-    #     if not hasattr(self, '_validated_data'):
-    #         try:
-    #             self._validated_data = self.run_validation(self.initial_data)
-    #         except exceptions.ValidationError as exc:
-    #             self._validated_data = {}
-    #             self._errors = exc.detail
-    #         else:
-    #             self._errors = {}
-    #     try:
-    #         if self._validated_data['from_date'] > self._validated_data['to_date']:
-    #             self._errors.update({
-    #                 'from_date and to_date': 'from_date must be small than to_date'
-    #             })
-
-    #         if self._validated_data['to_date'] > date.today():
-    #             self._errors.update({
-    #                 'to_date ': 'to_date must be small than now date'
-    #             })
-    #     except:
-    #         pass
-
-    #     if (self.to_date - self.from_date) > MAX_MONTH_QUERY_REPORTS*30:
-    #         self._errors.append({
-    #             'from_date and to_date': 'from_date must be small than to_date'
-    #         })
-
-    #     if self._errors and raise_exception:
-    #         raise exceptions.ValidationError(self.errors)
-
-    #     return not bool(self._errors)
 
     def validate(self, data):
         from_date = data['from_date']
@@ -87,6 +52,9 @@ class ReportParamsValidateSerializer(serializers.Serializer):
             raise serializers.ValidationError({'error': f'Bạn chỉ có thể xem báo cáo trong vòng {MAX_MONTH_QUERY_REPORTS} tháng.'
                                                })
 
-        # if error:
-        #     raise serializers.ValidationError({'error': 'aa'})
         return super().validate(data)
+
+
+class ReportParamsValidateExportSerializer(ReportParamsValidateSerializer):
+    ward = serializers.CharField(required=True)
+    street = serializers.CharField(required=True)

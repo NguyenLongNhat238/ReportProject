@@ -11,7 +11,7 @@ from report.helpers import currency_converter_helper, get_data_vs_map_district_o
 from report.paginations import RealEstate2022Paginator
 from .documents import RealEstate2021Document
 from .models import RealEstate2021, RealEstate2022
-from .serializers import RealEstate2021Serializer, RealEstate2022Serializer, ReportParamsValidateSerializer
+from .serializers import RealEstate2021Serializer, RealEstate2022Serializer, ReportParamsValidateExportSerializer, ReportParamsValidateSerializer
 ###############################################################
 ####        MATH PYTHON                             ##########
 #############################################################
@@ -66,6 +66,8 @@ class ReportDealer(viewsets.ViewSet,):
         district = data.get('district')
         from_date = data.get('from_date')
         to_date = data.get('to_date')
+        ward = data.get('ward')
+        street = data.get('street')
         if year == 2022:
 
             query = query_total = RealEstate2022.objects.all()
@@ -80,6 +82,10 @@ class ReportDealer(viewsets.ViewSet,):
         if self.action not in ['price_per_district', 'district_of_interest', 'places_of_interest']:
             if district:
                 query = query.filter(split_district=district)
+            if ward:
+                query = query.filter(split_ward=ward)
+            if street:
+                query = query.filter(format_street=street)
 
         if from_date:
             query = query.filter(ads_date__gte=from_date)
@@ -96,7 +102,10 @@ class ReportDealer(viewsets.ViewSet,):
     @action(methods=['get'], url_path="dealer", detail=False)
     def report_dealer(self, request):
         model, query_total = self.get_queryset()
-
+        num_ads = model.count()
+        # ads_street = []
+        # for i in num_ads:
+        #     ads_street.append(i.format_street)
         total_dealer = query_total.filter(dealer_name__isnull=False)\
             .exclude(dealer_name='').values_list('dealer_tel', flat=True).distinct().count()
 
@@ -108,6 +117,7 @@ class ReportDealer(viewsets.ViewSet,):
         # num_dealer = RealEstate2021Document.search().update_from_dict({'collapse':{'field':'city'}})
         return Response(data={
             'total_dealer': total_dealer,
+            'number_ads': num_ads,
             'number_dealer': number_dealer,
             'params': self.get_params(),
         }, status=status.HTTP_200_OK)
@@ -157,7 +167,7 @@ class ReportDealer(viewsets.ViewSet,):
         ###     - Count
         if model.count() < 10:
             return Response(ErrorHandling(message='Hiện chưa cập nhật dữ liệu về vị trí và thời gian này / This location and time data has not been updated yet',
-                                          code='NONE VALUE', type='NONE VALUE', lang='en').to_representation(), status=status.HTTP_200_OK)
+                                          code='NONE VALUE', type='NONE VALUE', lang='vi').to_representation(), status=status.HTTP_200_OK)
         math_price = model.aggregate(Sum('price'), Avg('price'), Max(
             'price'), Min('price'), num_price=Count('price'))
 
@@ -429,11 +439,13 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
         query = RealEstate2022.objects.all()
         data = self.request.query_params
         # validate data params
-        serialzier = ReportParamsValidateSerializer(data=data)
+        serialzier = ReportParamsValidateExportSerializer(data=data)
         serialzier.is_valid(raise_exception=True)
         # params
         city = data.get('city')
         district = data.get('district')
+        ward = data.get('ward')
+        street = data.get('street')
         from_date = data.get('from_date')
         to_date = data.get('to_date')
         # filter query
@@ -441,6 +453,10 @@ class RealEstate2022ViewSet(viewsets.ViewSet, generics.ListAPIView):
             query = query.filter(split_city=city)
         if district:
             query = query.filter(split_district=district)
+        if ward:
+            query = query.filter(split_ward=ward)
+        if street:
+            query = query.filter(format_street=street)
         if from_date:
             query = query.filter(ads_date__gte=from_date)
         if to_date:
