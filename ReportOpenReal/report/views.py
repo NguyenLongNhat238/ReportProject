@@ -378,19 +378,26 @@ class ReportDealer(viewsets.ViewSet,):
 class DataForExportViewSet(viewsets.ViewSet):
     def get_params(self):
         data = self.request.query_params
-        city = data.get('city')
-        district = data.get('district')
-        from_date = data.get('from_date')
-        to_date = data.get('to_date')
-        params = {}
-        if city:
-            params.update({'city': city})
-        if district:
-            params.update({'district': district})
-        if from_date:
-            params.update({'from_date': from_date})
-        if to_date:
-            params.update({'to_date': to_date})
+        params = data
+        # city = data.get('city')
+        # district = data.get('district')
+        # ward = data.get('ward')
+        # street = data.get('street') 
+        # from_date = data.get('from_date')
+        # to_date = data.get('to_date')
+        # params = {}
+        # if city:
+        #     params.update({'city': city})
+        # if district:
+        #     params.update({'district': district})
+        # if ward:
+        #     params.update({'ward': ward})
+        # if street:
+        #     params.update({'street': street})
+        # if from_date:
+        #     params.update({'from_date': from_date})
+        # if to_date:
+        #     params.update({'to_date': to_date})
         return params
 
     def get_queryset(self):
